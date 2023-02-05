@@ -1,6 +1,6 @@
 [package]
 name = "radio"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -11,4 +11,3 @@ serde_derive = "1.0"
 serde_with = { version = "1.4.0", features = ["json"]}
 serde_json = "1.0.69"
 clap = { version = "4.1.4", features = ["derive"] }
-libmpv = "2.0.1"

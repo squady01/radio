@@ -1,3 +1,5 @@
+use std::{env};
+
 use radio::radio::Radio;
 use clap::{Args, Parser, Subcommand};
 
@@ -43,21 +45,34 @@ struct RadioCommand
     pub first_arg: RadioArgs,
 }
 
+pub fn contruct_radios_path(file_name: &str) -> Result<String, String>
+{
+    let mut file_path = env::current_exe().expect("Unable to find current exe path");
+    file_path.pop();
+    file_path.push(file_name);
+    let file_path = file_path.to_str().expect("Unable to convert path to str format");
+
+    Ok(file_path.to_string())
+}
+
 fn main() {
     
-    if let Ok(mut radios) = Radio::load_radios(RADIOS_FILE) {
+    
+    let radios_file = contruct_radios_path(RADIOS_FILE).unwrap();
+
+    if let Ok(mut radios) = Radio::load_radios(&radios_file) {
         if let Ok(command) = RadioCommand::try_parse() {
             match command.first_arg {
                 RadioArgs::Add(arg) => {
                     let radio = Radio { name: arg.radio_name, stream_url: arg.radio_stream };
-                    match Radio::add_radio(RADIOS_FILE, &mut radios, &radio)
+                    match Radio::add_radio(&radios_file, &mut radios, &radio)
                     {
                         Ok(_) => println!("Radio {} added", radio.name),
                         Err(error) => println!("{}",&error),
                     }
                 },
                 RadioArgs::Del(radio) => {
-                    match  Radio::del_radio(RADIOS_FILE, &mut radios, &radio.radio_name)
+                    match  Radio::del_radio(&radios_file, &mut radios, &radio.radio_name)
                     {
                         Ok(_) => println!("Radio {} removed", &radio.radio_name),
                         Err(error) => println!("{}",&error),

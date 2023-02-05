@@ -166,21 +166,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "201de327520df007757c1f0adce6e827fe8562fbc28bfd9c15571c66ca1f5f79"
 
 [[package]]
-name = "libmpv"
-version = "2.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "61a58e2d19b34775e81e0fdca194b3b8ee8de973b092e7582b416343979e22e7"
-dependencies = [
- "libmpv-sys",
-]
-
-[[package]]
-name = "libmpv-sys"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0df938d3145cd8f134572721a27afa3a51f9bc1c26ae30a1d5077162f96d074b"
-
-[[package]]
 name = "linux-raw-sys"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -242,10 +227,9 @@ dependencies = [
 
 [[package]]
 name = "radio"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "clap",
- "libmpv",
  "serde",
  "serde_derive",
  "serde_json",
