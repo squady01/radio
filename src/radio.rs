@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::{process::{Command, Stdio}, collections::HashMap, fs::File, io::BufReader};
+use std::{process::{Command, Stdio}, collections::HashMap, fs::File, io::{BufReader, Error, ErrorKind}};
 
 
 
@@ -22,61 +22,43 @@ impl Radio {
         
                             let _ = process.wait();
     }
-    pub fn save_radios(filename: &str, radios: &HashMap<String, Radio>) -> Result<bool, String>
+    pub fn save_radios(filename: &str, radios: &HashMap<String, Radio>) -> Result<(), Error>
     {
-        if let Ok(file) = std::fs::File::create(filename)
-        {
-            return match serde_json::to_writer_pretty(&file, &radios)
-            {
-                Ok(_) => Ok(true),
-                Err(_) => Ok(false),
-            }
-        }
-        Ok(true)
+        let file = std::fs::File::create(filename)?;
+        serde_json::to_writer_pretty(file, &radios)?;
+
+        Ok(())
     }
-    pub fn add_radio(filename: &str, radios: &mut HashMap<String, Radio>, radio_to_add: &Radio) -> Result<bool, String>
+    pub fn add_radio(filename: &str, radios: &mut HashMap<String, Radio>, radio_to_add: &Radio) -> Result<(), Error>
     {
-        match radios.get_mut(&radio_to_add.name)
-        {
-            Some(radio) => radio.stream_url = radio_to_add.stream_url.clone(),
-            None => {
-                radios.insert(radio_to_add.name.clone(), radio_to_add.clone());
-            }
-        }
+        radios.entry(radio_to_add.name.clone())
+            .or_insert_with(|| radio_to_add.clone())
+                .stream_url = radio_to_add.stream_url.clone();
 
         Radio::save_radios(filename, radios)
     }
 
-    pub fn del_radio(filename: &str, radios: &mut HashMap<String, Radio>, radio_name: &str) -> Result<bool, String>
-    {
-       
-        if let None = radios.remove(radio_name)
-        {
-            return Err(format!("Radio '{}' not found", radio_name));
+    pub fn del_radio(filename: &str, radios: &mut HashMap<String, Radio>, radio_name: &str) -> Result<(), Error> {
+        if radios.remove(radio_name).is_none() {
+            return Err(Error::new(ErrorKind::NotFound, format!("Radio '{}' not found", radio_name)));
         }
-
+    
         Radio::save_radios(filename, radios)
     }
 
-    pub fn get_radio(radios: &HashMap<String, Radio>, radio_name: &str) -> Result<Radio, String>
+    pub fn get_radio(radios: &HashMap<String, Radio>, radio_name: &str) -> Result<Radio, Error>
     {
-        radios.get(radio_name).cloned().ok_or(format!("Radio {radio_name} not found").to_string())
+        radios.get(radio_name)
+            .cloned()
+            .ok_or_else(|| Error::new(ErrorKind::NotFound, format!("Radio '{}' not found", radio_name)))
     }
-    pub fn load_radios(file_name:&str) -> Result<HashMap<String, Radio>, String>
+    pub fn load_radios(file_name:&str) -> Result<HashMap<String, Radio>, Error>
     {
-        match File::open(file_name)
-        {
-            Ok(file) => 
-            {
-                let reader = BufReader::new(file);
-                match serde_json::from_reader::<_, HashMap<String, Radio>>(reader)
-                {
-                    Ok(radi) => Ok(radi),
-                    Err(_) => Err("Unable to load file, error in the Json format".to_string()),
-                }
-            },
-            Err(_) => Ok(HashMap::new())
-        }
+        let file = File::open(file_name).map_err(|err| Error::new(err.kind(), format!("Unable to open file: {}", err)))?;
+        let reader = BufReader::new(file);
+    
+        serde_json::from_reader(reader)
+            .map_err(|err| Error::new(ErrorKind::InvalidData, format!("Unable to load file, error in the Json format: {}", err)))
     }
 
 

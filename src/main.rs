@@ -45,14 +45,14 @@ struct RadioCommand
     pub first_arg: RadioArgs,
 }
 
-pub fn contruct_radios_path(file_name: &str) -> Result<String, String>
+pub fn contruct_radios_path(file_name: &str) -> Result<String, &str>
 {
     let mut file_path = env::current_exe().expect("Unable to find current exe path");
     file_path.pop();
     file_path.push(file_name);
     let file_path = file_path.to_str().expect("Unable to convert path to str format");
 
-    Ok(file_path.to_string())
+    Ok(file_path.to_owned())
 }
 
 fn main() {
@@ -68,21 +68,21 @@ fn main() {
                     match Radio::add_radio(&radios_file, &mut radios, &radio)
                     {
                         Ok(_) => println!("Radio {} added", radio.name),
-                        Err(error) => println!("{}",&error),
+                        Err(error) => println!("{}",error),
                     }
                 },
                 RadioArgs::Del(radio) => {
                     match  Radio::del_radio(&radios_file, &mut radios, &radio.radio_name)
                     {
                         Ok(_) => println!("Radio {} removed", &radio.radio_name),
-                        Err(error) => println!("{}",&error),
+                        Err(error) => println!("{}",error),
                     }
                 }
                 RadioArgs::Play(arg) => {
                     match Radio::get_radio(&radios, &arg.radio_name) 
                     {
                         Ok(radio) => radio.play_radio(),
-                        Err(message) => println!("{message}")
+                        Err(error) => println!("{error}")
                     }
                 },
                 RadioArgs::List => {
