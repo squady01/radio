@@ -22,6 +22,14 @@ impl Radio {
         
                             let _ = process.wait();
     }
+
+    pub fn create_new_file(file_name: &str) -> Result<(), Error>
+    {
+        let empty_radios:HashMap<String, Radio> = HashMap::new();
+        let file = std::fs::File::create(file_name)?;
+        serde_json::to_writer_pretty(file, &empty_radios)?;
+        Ok(())
+    }
     pub fn save_radios(filename: &str, radios: &HashMap<String, Radio>) -> Result<(), Error>
     {
         let file = std::fs::File::create(filename)?;

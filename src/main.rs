@@ -1,4 +1,4 @@
-use std::{env};
+use std::{env, path::Path};
 
 use radio::radio::Radio;
 use clap::{Args, Parser, Subcommand};
@@ -9,13 +9,13 @@ const RADIOS_FILE: &str = "radios.json";
 
 #[derive(Debug, Subcommand)]
 enum RadioArgs {
-    /// Add a radio to the radio list
+    /// Add a radio to the list
     Add(AddRadio),  
-    /// Remove a radio from the radio list
+    /// Remove a radio from the list
     Del(DelRadio),  
     /// Play a radio
     Play(PlayRadio),
-    /// Show the radio list
+    /// Display the list of the radios
     List
 }
 
@@ -45,7 +45,7 @@ struct RadioCommand
     pub first_arg: RadioArgs,
 }
 
-pub fn contruct_radios_path(file_name: &str) -> Result<String, &str>
+pub fn construct_radios_path(file_name: &str) -> Result<String, &str>
 {
     let mut file_path = env::current_exe().expect("Unable to find current exe path");
     file_path.pop();
@@ -55,10 +55,16 @@ pub fn contruct_radios_path(file_name: &str) -> Result<String, &str>
     Ok(file_path.to_owned())
 }
 
+
 fn main() {
     
     
-    let radios_file = contruct_radios_path(RADIOS_FILE).unwrap();
+    let radios_file = construct_radios_path(RADIOS_FILE).unwrap();
+
+    if !Path::new(&radios_file).exists() {
+        let _ = Radio::create_new_file(&radios_file);
+        println!("File {} created", radios_file);
+    }
 
     if let Ok(mut radios) = Radio::load_radios(&radios_file) {
         if let Ok(command) = RadioCommand::try_parse() {
